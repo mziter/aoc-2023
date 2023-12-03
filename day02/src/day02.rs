@@ -1,6 +1,5 @@
 use std::cmp;
 
-
 #[derive(Debug, PartialEq, Eq)]
 struct GameInfo {
     id: u32,
