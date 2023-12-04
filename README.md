@@ -4,7 +4,7 @@ Advent of Code 2023 solutions using Rust leaning towards efficieny/performance.
 
 # Benchmarks
 
-Running on `AMD Ryzen 7 7800X3D 8-Core Processor`
+Using Divan and running on `AMD Ryzen 7 7800X3D 8-Core Processor`
 
 ```
 day01                fastest       │ slowest       │ median        │ mean          │ samples │ iters
@@ -20,6 +20,10 @@ day02                          fastest       │ slowest       │ median       
 day03                  fastest       │ slowest       │ median        │ mean          │ samples │ iters
 ├─ day_three_part_one  108.8 µs      │ 755.5 µs      │ 127.1 µs      │ 141.6 µs      │ 100     │ 100
 ╰─ day_three_part_two  240.9 µs      │ 305 µs        │ 259.7 µs      │ 261.9 µs      │ 100     │ 100
+
+day04                 fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ day_four_part_one  24.7 µs       │ 796.6 µs      │ 43.99 µs      │ 50.46 µs      │ 100     │ 100
+╰─ day_four_part_two  122.8 µs      │ 168.8 µs      │ 123.1 µs      │ 124.6 µs      │ 100     │ 100
 ```
 
 # Notes
@@ -43,3 +47,8 @@ It seems like I am leaning more towards implementing iterators for most of these
 problems since alternative solutions that are easier will often do a lot more
 allocations. Once we have the positions of the numbers and the symbols, we just
 check surrounds positions to get the solutions for part one and two.
+
+# Day 4
+
+Fairly straightforward solution to both parts without any really novel approach
+IMHO.
