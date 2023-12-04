@@ -1,9 +1,11 @@
+use rayon::prelude::*;
+
 pub fn solve_part_one(input: &str) -> u32 {
-    input.lines().map(calibration_value).sum()
+    input.par_lines().map(calibration_value).sum()
 }
 
 pub fn solve_part_two(input: &str) -> u32 {
-    input.lines().map(calibration_value_detect_str).sum()
+    input.par_lines().map(calibration_value_detect_str).sum()
 }
 
 fn calibration_value(line: &str) -> u32 {

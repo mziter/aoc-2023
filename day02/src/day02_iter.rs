@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use std::cmp;
+use rayon::prelude::*;
 
 type CubeCount = (CubeColor, u32);
 
@@ -62,7 +63,7 @@ struct GameInfo {
 
 pub fn solve_part_one_with_iterator(input: &str) -> u32 {
     input
-        .lines()
+        .par_lines()
         .map(get_game_totals_with_iter)
         .filter(|gc| gc.max_red <= 12 && gc.max_green <= 13 && gc.max_blue <= 14)
         .map(|gc| gc.id)
@@ -71,7 +72,7 @@ pub fn solve_part_one_with_iterator(input: &str) -> u32 {
 
 pub fn solve_part_two_with_iterator(input: &str) -> u32 {
     input
-        .lines()
+        .par_lines()
         .map(get_game_totals_with_iter)
         .map(|gc| gc.max_red * gc.max_green * gc.max_blue)
         .sum()

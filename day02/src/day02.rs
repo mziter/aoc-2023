@@ -1,4 +1,5 @@
 use std::cmp;
+use rayon::prelude::*;
 
 #[derive(Debug, PartialEq, Eq)]
 struct GameInfo {
@@ -10,7 +11,7 @@ struct GameInfo {
 
 pub fn solve_part_one(input: &str) -> u32 {
     input
-        .lines()
+        .par_lines()
         .map(get_game_totals)
         .filter(|gc| gc.max_red <= 12 && gc.max_green <= 13 && gc.max_blue <= 14)
         .map(|gc| gc.id)
@@ -19,7 +20,7 @@ pub fn solve_part_one(input: &str) -> u32 {
 
 pub fn solve_part_two(input: &str) -> u32 {
     input
-        .lines()
+        .par_lines()
         .map(get_game_totals)
         .map(|gc| gc.max_red * gc.max_green * gc.max_blue)
         .sum()
