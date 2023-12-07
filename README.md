@@ -32,6 +32,10 @@ day05                          fastest       │ slowest       │ median       
 day06                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
 ├─ part_one                    169.7 ns      │ 1.039 µs      │ 169.7 ns      │ 188.5 ns      │ 100     │ 100
 ╰─ part_two                    388.7 ns      │ 1.309 µs      │ 389.7 ns      │ 406.7 ns      │ 100     │ 100
+
+day07                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ part_one                    168.2 µs      │ 324.7 µs      │ 173 µs        │ 189.1 µs      │ 100     │ 100
+╰─ part_two                    171.8 µs      │ 315.8 µs      │ 174.7 µs      │ 191.7 µs      │ 100     │ 100
 ```
 
 # Notes
@@ -84,9 +88,10 @@ figure out how many more would then succeed.
 # Day 7 (Revisit for general refactor)
 
 Approach was to keep things as simple as possible, to mostly keep parsed strings
-as strings and not overly convert raw data into objects. Part one logic was pretty
-straight forward after implementing sorting logic for hands to prioritize hand type
-first and then incrementally the individual cards.
+as strings and not overly convert raw data into objects. Part one logic was
+pretty straight forward after implementing sorting logic for hands to prioritize
+hand type first and then incrementally the individual cards.
 
-Part two was a tiny bit more difficult as the Joker made the logic to detect different
-hands more complicated. This section could definetly use a refactor to simplify!
+Part two was a tiny bit more difficult as the Joker made the logic to detect
+different hands more complicated. This section could definetly use a refactor to
+simplify!

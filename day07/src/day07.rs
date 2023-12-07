@@ -30,6 +30,8 @@ impl<'a> Hand<'a> {
         }
     }
 
+    //TODO: The sort and dedup here are pretty costly in time and allocations.
+    //      This would be a good place to optimize if desired.
     fn detect_hand_type(cards: &'a str, joker_rules: bool) -> HandType {
         let mut card_counts: Vec<(usize, char)> = cards
             .chars()
