@@ -61,7 +61,7 @@ check surrounds positions to get the solutions for part one and two.
 Fairly straightforward solution to both parts without any really novel approach
 IMHO.
 
-# Day 5
+# Day 5 (Revisit improving Part Two)
 
 Solution was again, pretty straightforward. The solution to part two is
 incredibly slow though. I did have a thought and started to implement a solution
@@ -80,3 +80,13 @@ realized that the success/failure is in order and once you hit the first
 "other side" or descent of the output values. So I implemented a simple binary
 search to find the first value that meets the solution and then just use math to
 figure out how many more would then succeed.
+
+# Day 7 (Revisit for general refactor)
+
+Approach was to keep things as simple as possible, to mostly keep parsed strings
+as strings and not overly convert raw data into objects. Part one logic was pretty
+straight forward after implementing sorting logic for hands to prioritize hand type
+first and then incrementally the individual cards.
+
+Part two was a tiny bit more difficult as the Joker made the logic to detect different
+hands more complicated. This section could definetly use a refactor to simplify!
