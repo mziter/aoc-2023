@@ -1,5 +1,29 @@
-use crate::range::*;
+use itertools::Itertools;
 use rayon::prelude::*;
+
+#[derive(Debug)]
+pub struct SeedMap {
+    rules: Vec<MapRule>,
+}
+
+impl SeedMap {
+    fn translate(&self, s: u64) -> u64 {
+        for r in &self.rules {
+            if s >= r.in_start && s < r.in_start + r.len {
+                let offset = s - r.in_start;
+                return r.out_start + offset;
+            }
+        }
+        s
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MapRule {
+    out_start: u64,
+    in_start: u64,
+    len: u64,
+}
 
 pub fn solve_part_one(input: &str) -> u64 {
     let split = input.split("\n\n").collect::<Vec<&str>>();
@@ -13,29 +37,52 @@ pub fn solve_part_one(input: &str) -> u64 {
     let humid_to_locatin_info = parse_map(split[7]);
 
     seeds_info
-        .iter()
-        .map(|s| seed_to_soil_info.translate(s))
-        .map(|s| soil_to_fert_info.translate(&s))
-        .map(|s| fert_to_water_info.translate(&s))
-        .map(|s| water_to_light_info.translate(&s))
-        .map(|s| light_to_temp_info.translate(&s))
-        .map(|s| temp_to_humid_info.translate(&s))
-        .map(|s| humid_to_locatin_info.translate(&s))
+        .par_iter()
+        .map(|s| seed_to_soil_info.translate(*s))
+        .map(|s| soil_to_fert_info.translate(s))
+        .map(|s| fert_to_water_info.translate(s))
+        .map(|s| water_to_light_info.translate(s))
+        .map(|s| light_to_temp_info.translate(s))
+        .map(|s| temp_to_humid_info.translate(s))
+        .map(|s| humid_to_locatin_info.translate(s))
         .min()
         .unwrap()
 }
 
-pub fn solve_part_two(_input: &str) -> u64 {
-    todo!()
+pub fn solve_part_two(input: &str) -> u64 {
+    let split = input.split("\n\n").collect::<Vec<&str>>();
+    let seeds_info = parse_seed_info(split[0]);
+    let seed_to_soil_info = parse_map(split[1]);
+    let soil_to_fert_info = parse_map(split[2]);
+    let fert_to_water_info = parse_map(split[3]);
+    let water_to_light_info = parse_map(split[4]);
+    let light_to_temp_info = parse_map(split[5]);
+    let temp_to_humid_info = parse_map(split[6]);
+    let humid_to_locatin_info = parse_map(split[7]);
+
+    seeds_info
+        .into_iter()
+        .tuples()
+        .par_bridge()
+        .flat_map(|(start, len)| (start..(start + len)))
+        .map(|s| seed_to_soil_info.translate(s))
+        .map(|s| soil_to_fert_info.translate(s))
+        .map(|s| fert_to_water_info.translate(s))
+        .map(|s| water_to_light_info.translate(s))
+        .map(|s| light_to_temp_info.translate(s))
+        .map(|s| temp_to_humid_info.translate(s))
+        .map(|s| humid_to_locatin_info.translate(s))
+        .min()
+        .unwrap()
 }
 
 fn parse_range(range_input: &str) -> MapRule {
     let mut iter = range_input.split_ascii_whitespace();
-    MapRule::new(
-        iter.next().unwrap().parse::<u64>().unwrap(),
-        iter.next().unwrap().parse::<u64>().unwrap(),
-        iter.next().unwrap().parse::<u64>().unwrap(),
-    )
+    MapRule {
+        out_start: iter.next().unwrap().parse::<u64>().unwrap(),
+        in_start: iter.next().unwrap().parse::<u64>().unwrap(),
+        len: iter.next().unwrap().parse::<u64>().unwrap(),
+    }
 }
 
 fn parse_seed_info(seed_input: &str) -> Vec<u64> {
@@ -46,13 +93,13 @@ fn parse_seed_info(seed_input: &str) -> Vec<u64> {
 }
 
 fn parse_map(map_input: &str) -> SeedMap {
-    let ranges: Vec<MapRule> = map_input
+    let rules: Vec<MapRule> = map_input
         .lines()
         .skip(1)
         .par_bridge()
         .map(parse_range)
         .collect();
-    SeedMap::new(ranges)
+    SeedMap { rules }
 }
 
 #[cfg(test)]
@@ -98,10 +145,8 @@ humidity-to-location map:
         assert_eq!(solve_part_one(TEST_INPUT), 35);
     }
 
-    /*
     #[test]
     fn test_solve_part_two() {
         assert_eq!(solve_part_two(TEST_INPUT), 46);
     }
-    */
 }
