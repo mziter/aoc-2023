@@ -1,5 +1,7 @@
 use itertools::Itertools;
 use rayon::prelude::*;
+use std::cmp::max;
+use std::ops::Range;
 
 #[derive(Debug)]
 pub struct SeedMap {
@@ -23,6 +25,27 @@ pub struct MapRule {
     out_start: u64,
     in_start: u64,
     len: u64,
+}
+
+impl MapRule {
+    fn merge(self, other: MapRule) -> Vec<MapRule> {
+        let overlap = self.get_overlap(other);
+
+        todo!()
+    }
+
+    /// Get overlap of MapRules out_range and provided MapRules in_range.
+    fn get_overlap(&self, other: MapRule) -> Range<u64> {
+        let start = max(self.out_start, other.in_start);
+        let end = max(self.out_start, other.in_start);
+        start..end + 1
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MapRange {
+    in_range: Range<u64>,
+    out_range: Range<u64>,
 }
 
 pub fn solve_part_one(input: &str) -> u64 {
