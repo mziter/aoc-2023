@@ -31,7 +31,7 @@ impl<'a> Hand<'a> {
     }
 
     fn detect_hand_type(cards: &'a str, joker_rules: bool) -> HandType {
-        let card_counts: Vec<(usize, char)> = cards
+        let mut card_counts: Vec<(usize, char)> = cards
             .chars()
             .sorted_unstable()
             .dedup_with_count()
@@ -39,7 +39,6 @@ impl<'a> Hand<'a> {
             .rev()
             .collect();
 
-        let first_count = card_counts[0].0;
         let joker_count = if joker_rules {
             if let Some((count, _)) = card_counts.iter().find(|(_, card)| card == &'J') {
                 *count
@@ -49,12 +48,20 @@ impl<'a> Hand<'a> {
         } else {
             0
         };
+        if joker_rules {
+            card_counts.retain(|(_, c)| c != &'J');
+        }
+        if joker_count == 5 {
+            return HandType::FiveOfKind;
+        }
+
+        let first_count = card_counts[0].0;
 
         if first_count == 5 || first_count + joker_count == 5 {
             return HandType::FiveOfKind;
         }
         let second_count = card_counts[1].0;
-        if first_count == 4 || first_count + joker_count == 5 {
+        if first_count == 4 || first_count + joker_count == 4 {
             return HandType::FourOfKind;
         }
         if ((first_count == 3 || first_count + joker_count == 3) && second_count == 2)
@@ -66,7 +73,7 @@ impl<'a> Hand<'a> {
             return HandType::ThreeOfKind;
         }
         if ((first_count == 2 || first_count + joker_count == 2) && second_count == 2)
-            || (first_count == 2 && second_count == 2 || second_count + joker_count == 2)
+            || (first_count == 2 && (second_count == 2 || second_count + joker_count == 2))
         {
             return HandType::TwoPair;
         }
