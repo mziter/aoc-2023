@@ -36,6 +36,10 @@ day06                          fastest       │ slowest       │ median       
 day07                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
 ├─ part_one                    168.2 µs      │ 324.7 µs      │ 173 µs        │ 189.1 µs      │ 100     │ 100
 ╰─ part_two                    171.8 µs      │ 315.8 µs      │ 174.7 µs      │ 191.7 µs      │ 100     │ 100
+
+day08                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ part_one                    288.2 µs      │ 593 µs        │ 294 µs        │ 302.5 µs      │ 100     │ 100
+╰─ part_two                    528.2 µs      │ 1.172 ms      │ 545 µs        │ 557.9 µs      │ 100     │ 100
 ```
 
 # Notes
@@ -95,3 +99,11 @@ hand type first and then incrementally the individual cards.
 Part two was a tiny bit more difficult as the Joker made the logic to detect
 different hands more complicated. This section could definetly use a refactor to
 simplify!
+
+# Day 8
+
+Simple solutions using hashmaps to store different location information. For
+part two I realized that each starting point would have its own cycle and that
+all of them lining up at once was basically the LCM (least common multiple) of
+each. So I used `par_iter` to find the cycle time of each starting point in
+parallel, and then found the LCM for all the points to get the answer.
