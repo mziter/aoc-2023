@@ -1,0 +1,59 @@
+use itertools::Itertools;
+use rayon::{iter::ParallelIterator, str::ParallelString};
+
+pub fn solve_part_one(input: &str) -> i64 {
+    input.par_lines().map(predict_next).sum()
+}
+
+pub fn solve_part_two(input: &str) -> i64 {
+    todo!();
+}
+
+fn predict_next(history: &str) -> i64 {
+    let mut matrix: Vec<Vec<i64>> = Vec::with_capacity(25);
+
+    let first_row = history
+        .split_ascii_whitespace()
+        .map(|n| n.parse::<i64>().unwrap())
+        .collect_vec();
+    matrix.push(first_row);
+
+    let mut all_zeros = false;
+    let mut depth = 1;
+    while !all_zeros {
+        let mut next_row: Vec<i64> = vec![];
+        matrix[depth - 1]
+            .iter()
+            .tuple_windows()
+            .for_each(|(a, b)| next_row.push(b - a));
+        if next_row.iter().all(|n| n == &0) {
+            all_zeros = true;
+        }
+        matrix.push(next_row);
+        depth += 1;
+    }
+
+    dbg!(&matrix[0]);
+    0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_EXAMPLE: &str = r#"0 3 6 9 12 15
+1 3 6 10 15 21
+10 13 16 21 30 45"#;
+
+    #[test]
+    fn test_solve_part_one() {
+        assert_eq!(solve_part_one(TEST_EXAMPLE), 2);
+    }
+
+    /*
+    #[test]
+    fn test_solve_part_two() {
+        assert_eq!(solve_part_two(TEST_EXAMPLE), 6);
+    }
+    */
+}
