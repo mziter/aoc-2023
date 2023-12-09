@@ -40,6 +40,10 @@ day07                          fastest       │ slowest       │ median       
 day08                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
 ├─ part_one                    288.2 µs      │ 593 µs        │ 294 µs        │ 302.5 µs      │ 100     │ 100
 ╰─ part_two                    528.2 µs      │ 1.172 ms      │ 545 µs        │ 557.9 µs      │ 100     │ 100
+
+day09                          fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ part_one                    30.38 µs      │ 637.5 µs      │ 33.38 µs      │ 46.79 µs      │ 100     │ 100
+╰─ part_two                    29.41 µs      │ 295.6 µs      │ 33.41 µs      │ 44.95 µs      │ 100     │ 100
 ```
 
 # Notes
@@ -107,3 +111,17 @@ part two I realized that each starting point would have its own cycle and that
 all of them lining up at once was basically the LCM (least common multiple) of
 each. So I used `par_iter` to find the cycle time of each starting point in
 parallel, and then found the LCM for all the points to get the answer.
+
+# Day 9
+
+Fairly easy day. Build up the pyramid as a vec of vecs so that I could access
+elements by index. Considered using arrays for performance, but didnt want to
+have to add additional logic to keep track of lengths. Could you a single array
+and calculate index's but then adding on to the ends would be a pain.
+
+Used `par_iter` to process each history line in parallel, which speeds up
+solutions greatly on multi-core machines.
+
+For part two I used the same algorith, but just reversed the history elements
+and math so that I could reuse most of my existing logic and push elements on
+the end of the vectors instead of inserting in the front.

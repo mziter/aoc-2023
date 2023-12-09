@@ -37,13 +37,11 @@ fn predict_previous(history: &str) -> i64 {
     }
 
     // get answer
-    // Should I work up or recurse down?
     matrix[depth].push(0);
-    // let mut len = matrix[depth].len() + 1;
     while depth > 0 {
         depth -= 1;
         let i = matrix[depth].len() - 1;
-        let next = &matrix[depth][i] - &matrix[depth + 1][i];
+        let next = matrix[depth][i] - matrix[depth + 1][i];
         matrix[depth].push(next);
     }
 
@@ -77,13 +75,11 @@ fn predict_next(history: &str) -> i64 {
     }
 
     // get answer
-    // Should I work up or recurse down?
     matrix[depth].push(0);
-    // let mut len = matrix[depth].len() + 1;
     while depth > 0 {
         depth -= 1;
         let i = matrix[depth].len() - 1;
-        let next = &matrix[depth][i] + &matrix[depth + 1][i];
+        let next = matrix[depth][i] + matrix[depth + 1][i];
         matrix[depth].push(next);
     }
 

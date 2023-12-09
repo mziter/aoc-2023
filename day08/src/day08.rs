@@ -19,7 +19,7 @@ pub fn solve_part_one(input: &str) -> u64 {
 
     let mut location = "AAA";
     let mut turns_taken = 0;
-    let mut directions_iter = std::iter::repeat(directions).flat_map(|s| s.chars());
+    let mut directions_iter = directions.chars().cycle();
     while location != "ZZZ" {
         let location_info = locations.get(location).unwrap();
         let d = directions_iter.next().unwrap();
@@ -46,7 +46,7 @@ pub fn find_cycle_length<'a>(
     lookup: &HashMap<&str, Location<'a>>,
 ) -> u64 {
     let mut turns = 0;
-    let mut directions_iter = std::iter::repeat(directions).flat_map(|s| s.chars());
+    let mut directions_iter = directions.chars().cycle();
     while !location.ends_with('Z') {
         let d = directions_iter.next().unwrap();
         let location_info = lookup.get(location).unwrap();
