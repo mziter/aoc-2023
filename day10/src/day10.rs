@@ -1,3 +1,9 @@
+use rayon::iter::IndexedParallelIterator;
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
+use std::collections::{hash_map::RandomState, HashSet};
+use std::iter;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum TileContents {
     Missing,
@@ -79,8 +85,8 @@ impl TileContents {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-struct Point {
+#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
+pub struct Point {
     x: usize,
     y: usize,
 }
@@ -246,6 +252,47 @@ pub fn solve_part_one(input: &str) -> u32 {
     find_loop_length(&matrix, &start_tile, &start_tile, 0).unwrap()
 }
 
+pub fn solve_part_two(input: &str) -> u32 {
+    let matrix = Matrix::from(input);
+    let start_tile = matrix.find_start();
+    let path = find_loop_path(
+        &matrix,
+        &start_tile,
+        &start_tile,
+        &mut Vec::with_capacity(15000),
+    )
+    .unwrap();
+
+    let path_points: HashSet<&Point, RandomState> = HashSet::from_iter(path.iter());
+
+    matrix
+        .points
+        //.par_iter()
+        .iter()
+        .enumerate()
+        .map(|(y, row)| {
+            let mut inside = false;
+            let mut sum = 0;
+            for (x, _) in row.iter().enumerate() {
+                let point = Point { x, y };
+                if path_points.contains(&point) {
+                    inside = !inside;
+                    print!("*");
+                    continue;
+                }
+                if inside {
+                    print!("I");
+                    sum += 1;
+                    continue;
+                }
+                print!(".");
+            }
+            println!(" ");
+            sum
+        })
+        .sum()
+}
+
 pub fn find_loop_length(matrix: &Matrix, current: &Tile, last: &Tile, len: u32) -> Option<u32> {
     let mut iter = matrix.neighbor_iter(&current.point).peekable();
     iter.peek()?;
@@ -254,6 +301,7 @@ pub fn find_loop_length(matrix: &Matrix, current: &Tile, last: &Tile, len: u32) 
             return Some(len.div_ceil(2));
         }
         if tile != *last {
+            println!("  debug - point:{:?}", current);
             let found = find_loop_length(matrix, &tile, current, len + 1);
             if found.is_some() {
                 return found;
@@ -263,8 +311,28 @@ pub fn find_loop_length(matrix: &Matrix, current: &Tile, last: &Tile, len: u32) 
     None
 }
 
-pub fn solve_part_two(input: &str) -> i64 {
-    todo!();
+pub fn find_loop_path(
+    matrix: &Matrix,
+    current: &Tile,
+    last: &Tile,
+    visited: &mut Vec<Point>,
+) -> Option<Vec<Point>> {
+    let mut iter = matrix.neighbor_iter(&current.point).peekable();
+    iter.peek()?;
+    for tile in iter {
+        if tile.tile_contents == TileContents::Start {
+            return Some(visited.to_vec());
+        }
+        if tile != *last {
+            println!("  debug - point:{:?}", current);
+            visited.push(current.point);
+            let found = find_loop_path(matrix, &tile, current, visited);
+            if found.is_some() {
+                return found;
+            }
+        }
+    }
+    None
 }
 
 #[cfg(test)]
@@ -280,6 +348,22 @@ L|7||
 -L-J|
 L|-JF"#;
 
+    const TEST_EXAMPLE_TWO: &str = r#"...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+..........."#;
+
+    #[test]
+    fn test_solve_part_one_example_two() {
+        assert_eq!(solve_part_one(TEST_EXAMPLE_TWO), 24);
+    }
+
+    /*
     #[test]
     fn test_iterator() {
         let m = Matrix::from(TEST_EXAMPLE);
@@ -302,8 +386,24 @@ L|-JF"#;
         assert_eq!(solve_part_one(TEST_EXAMPLE), 4);
     }
 
+
     #[test]
     fn test_solve_part_two() {
-        assert_eq!(solve_part_two(TEST_EXAMPLE), 2);
+        assert_eq!(solve_part_two(TEST_EXAMPLE_TWO), 4);
     }
+
+    #[test]
+    fn test_find_path() {
+        let matrix = Matrix::from(TEST_EXAMPLE_TWO);
+        let start_tile = matrix.find_start();
+        let path = find_loop_path(
+            &matrix,
+            &start_tile,
+            &start_tile,
+            &mut Vec::with_capacity(15000),
+        )
+        .unwrap();
+        assert_eq!(path.len(), 46);
+    }
+    */
 }
