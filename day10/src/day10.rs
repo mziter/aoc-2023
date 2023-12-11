@@ -1,8 +1,5 @@
-use rayon::iter::IndexedParallelIterator;
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelIterator;
 use std::collections::{hash_map::RandomState, HashSet};
-use std::iter;
+use std::fmt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum TileContents {
@@ -14,6 +11,22 @@ enum TileContents {
     NorthWestPipe,
     SouthEastPipe,
     SouthWestPipe,
+}
+
+impl fmt::Display for TileContents {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let c = match self {
+            Self::Missing => " ",
+            Self::Start => "S",
+            Self::VerticalPipe => "|",
+            Self::HorizontalPipe => "-",
+            Self::NorthEastPipe => "L",
+            Self::NorthWestPipe => "J",
+            Self::SouthEastPipe => "F",
+            Self::SouthWestPipe => "7",
+        };
+        write!(f, "{}", c)
+    }
 }
 
 impl From<char> for TileContents {
@@ -113,17 +126,21 @@ impl<'a> Iterator for ConnectionIterator<'a> {
 
     fn next(&mut self) -> Option<Tile> {
         if self.state > 3 {
+            println!("  ITER STATE DONE");
             return None;
         }
+        print!("  ORIGIN: {:?}", self.origin);
 
         match self.state {
             0 => {
+                println!("      iter north");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_north(&this.point) {
                     if this.tile_contents.connects_north() && other.tile_contents.connects_south() {
+                        println!("        found!");
                         self.state += 1;
                         return Some(other);
                     }
@@ -132,12 +149,17 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             1 => {
+                println!("      iter east");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_east(&this.point) {
-                    if this.tile_contents.connects_east() && other.tile_contents.connects_west() {
+                    println!("        got {:?}", other);
+                    if dbg!(
+                        this.tile_contents.connects_east() && other.tile_contents.connects_west()
+                    ) {
+                        println!("        found!");
                         self.state += 1;
                         return Some(other);
                     }
@@ -146,12 +168,14 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             2 => {
+                println!("      iter south");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_south(&this.point) {
                     if this.tile_contents.connects_south() && other.tile_contents.connects_north() {
+                        println!("        found!");
                         self.state += 1;
                         return Some(other);
                     }
@@ -160,12 +184,14 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             3 => {
+                println!("      iter west");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_west(&this.point) {
                     if this.tile_contents.connects_west() && other.tile_contents.connects_east() {
+                        println!("        found: {:?}", other);
                         self.state += 1;
                         return Some(other);
                     }
@@ -219,13 +245,15 @@ impl Matrix {
     }
 
     fn get_tile(&self, p: &Point) -> Option<Tile> {
-        let len = self.points.len();
-        if p.x < len && p.y < len {
+        let len_y = self.points.len();
+        let len_x = self.points[0].len();
+        if p.x < len_x && p.y < len_y {
             return Some(Tile {
                 point: *p,
                 tile_contents: self.points[p.y][p.x],
             });
         }
+        println!("OUT OF BOUNDS!");
         None
     }
 
@@ -249,6 +277,18 @@ impl Matrix {
 pub fn solve_part_one(input: &str) -> u32 {
     let matrix = Matrix::from(input);
     let start_tile = matrix.find_start();
+    //
+    //debug
+    //
+    println!("  0123456789");
+    for (i, line) in matrix.points.iter().enumerate() {
+        print!("{} ", i);
+        for c in line {
+            print!("{}", c)
+        }
+        println!(" ")
+    }
+    //
     find_loop_length(&matrix, &start_tile, &start_tile, 0).unwrap()
 }
 
@@ -276,6 +316,12 @@ pub fn solve_part_two(input: &str) -> u32 {
             for (x, _) in row.iter().enumerate() {
                 let point = Point { x, y };
                 if path_points.contains(&point) {
+                    if matrix.get_tile(&point).unwrap().tile_contents
+                        == TileContents::HorizontalPipe
+                    {
+                        print!("-");
+                        continue;
+                    }
                     inside = !inside;
                     print!("*");
                     continue;
@@ -294,14 +340,16 @@ pub fn solve_part_two(input: &str) -> u32 {
 }
 
 pub fn find_loop_length(matrix: &Matrix, current: &Tile, last: &Tile, len: u32) -> Option<u32> {
+    println!("  find neighbors of tile:{:?}", current);
     let mut iter = matrix.neighbor_iter(&current.point).peekable();
     iter.peek()?;
     for tile in iter {
         if tile.tile_contents == TileContents::Start {
+            println!("    found start - tile:{:?}", tile);
             return Some(len.div_ceil(2));
         }
         if tile != *last {
-            println!("  debug - point:{:?}", current);
+            println!("    debug - point:{:?}", current);
             let found = find_loop_length(matrix, &tile, current, len + 1);
             if found.is_some() {
                 return found;
@@ -360,10 +408,9 @@ L|-JF"#;
 
     #[test]
     fn test_solve_part_one_example_two() {
-        assert_eq!(solve_part_one(TEST_EXAMPLE_TWO), 24);
+        assert_eq!(solve_part_one(TEST_EXAMPLE_TWO), 23);
     }
 
-    /*
     #[test]
     fn test_iterator() {
         let m = Matrix::from(TEST_EXAMPLE);
@@ -386,7 +433,6 @@ L|-JF"#;
         assert_eq!(solve_part_one(TEST_EXAMPLE), 4);
     }
 
-
     #[test]
     fn test_solve_part_two() {
         assert_eq!(solve_part_two(TEST_EXAMPLE_TWO), 4);
@@ -405,5 +451,4 @@ L|-JF"#;
         .unwrap();
         assert_eq!(path.len(), 46);
     }
-    */
 }
