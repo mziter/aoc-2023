@@ -126,21 +126,17 @@ impl<'a> Iterator for ConnectionIterator<'a> {
 
     fn next(&mut self) -> Option<Tile> {
         if self.state > 3 {
-            println!("  ITER STATE DONE");
             return None;
         }
-        print!("  ORIGIN: {:?}", self.origin);
 
         match self.state {
             0 => {
-                println!("      iter north");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_north(&this.point) {
                     if this.tile_contents.connects_north() && other.tile_contents.connects_south() {
-                        println!("        found!");
                         self.state += 1;
                         return Some(other);
                     }
@@ -149,17 +145,12 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             1 => {
-                println!("      iter east");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_east(&this.point) {
-                    println!("        got {:?}", other);
-                    if dbg!(
-                        this.tile_contents.connects_east() && other.tile_contents.connects_west()
-                    ) {
-                        println!("        found!");
+                    if this.tile_contents.connects_east() && other.tile_contents.connects_west() {
                         self.state += 1;
                         return Some(other);
                     }
@@ -168,14 +159,12 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             2 => {
-                println!("      iter south");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_south(&this.point) {
                     if this.tile_contents.connects_south() && other.tile_contents.connects_north() {
-                        println!("        found!");
                         self.state += 1;
                         return Some(other);
                     }
@@ -184,14 +173,12 @@ impl<'a> Iterator for ConnectionIterator<'a> {
                 self.next()
             }
             3 => {
-                println!("      iter west");
                 let this = self
                     .matrix
                     .get_tile(&self.origin)
                     .expect("expect iterator to be created on a valid point");
                 if let Some(other) = self.matrix.get_west(&this.point) {
                     if this.tile_contents.connects_west() && other.tile_contents.connects_east() {
-                        println!("        found: {:?}", other);
                         self.state += 1;
                         return Some(other);
                     }
@@ -253,7 +240,6 @@ impl Matrix {
                 tile_contents: self.points[p.y][p.x],
             });
         }
-        println!("OUT OF BOUNDS!");
         None
     }
 
@@ -313,20 +299,22 @@ pub fn solve_part_two(input: &str) -> u32 {
         .map(|(y, row)| {
             let mut inside = false;
             let mut sum = 0;
-            for (x, _) in row.iter().enumerate() {
+            let mut was_on_line = false;
+            for (x, tc) in row.iter().enumerate() {
+                let on_line = tc.connects_west() || tc.connects_east();
+                if was_on_line && !on_line {
+                    continue;
+                }
                 let point = Point { x, y };
-                if path_points.contains(&point) {
-                    if matrix.get_tile(&point).unwrap().tile_contents
-                        == TileContents::HorizontalPipe
-                    {
-                        print!("-");
-                        continue;
-                    }
+                if !was_on_line
+                    && (tc.connects_north() && tc.connects_south())
+                    && path_points.contains(&point)
+                {
                     inside = !inside;
                     print!("*");
                     continue;
                 }
-                if inside {
+                if inside && (tc == &TileContents::Missing) {
                     print!("I");
                     sum += 1;
                     continue;
@@ -340,16 +328,13 @@ pub fn solve_part_two(input: &str) -> u32 {
 }
 
 pub fn find_loop_length(matrix: &Matrix, current: &Tile, last: &Tile, len: u32) -> Option<u32> {
-    println!("  find neighbors of tile:{:?}", current);
     let mut iter = matrix.neighbor_iter(&current.point).peekable();
     iter.peek()?;
     for tile in iter {
         if tile.tile_contents == TileContents::Start {
-            println!("    found start - tile:{:?}", tile);
             return Some(len.div_ceil(2));
         }
         if tile != *last {
-            println!("    debug - point:{:?}", current);
             let found = find_loop_length(matrix, &tile, current, len + 1);
             if found.is_some() {
                 return found;
@@ -369,10 +354,10 @@ pub fn find_loop_path(
     iter.peek()?;
     for tile in iter {
         if tile.tile_contents == TileContents::Start {
+            visited.push(current.point);
             return Some(visited.to_vec());
         }
         if tile != *last {
-            println!("  debug - point:{:?}", current);
             visited.push(current.point);
             let found = find_loop_path(matrix, &tile, current, visited);
             if found.is_some() {
@@ -389,8 +374,7 @@ mod tests {
 
     use super::*;
 
-    const TEST_EXAMPLE: &str = r#"
--L|F7
+    const TEST_EXAMPLE: &str = r#"-L|F7
 7S-7|
 L|7||
 -L-J|
@@ -417,11 +401,11 @@ L|-JF"#;
         let actual = m.neighbor_iter(&m.find_start().point).collect_vec();
         let expected = [
             Tile {
-                point: Point { x: 2, y: 2 },
+                point: Point { x: 2, y: 1 },
                 tile_contents: TileContents::HorizontalPipe,
             },
             Tile {
-                point: Point { x: 1, y: 3 },
+                point: Point { x: 1, y: 2 },
                 tile_contents: TileContents::VerticalPipe,
             },
         ];
