@@ -12,5 +12,8 @@ fn part_one() {
 
 #[divan::bench]
 fn part_two() {
-    solve_part_two(divan::black_box(include_str!("../input/day11.in")));
+    solve_part_two(
+        divan::black_box(include_str!("../input/day11.in")),
+        1_000_000,
+    );
 }

@@ -26,10 +26,7 @@ impl<'a, T> Iterator for TupleCombinationIter<'a, T> {
         }
 
         let next_item = (&self.items[self.i], &self.items[self.j]);
-
-        // increment
         self.j += 1;
-
         Some(next_item)
     }
 }
@@ -49,7 +46,7 @@ impl Point {
 pub fn solve_part_one(input: &str) -> usize {
     let mut cols = vec![1; 140];
     let mut rows = vec![1; 140];
-    let mut galaxies = vec![];
+    let mut galaxies = Vec::with_capacity(500);
 
     input.lines().enumerate().for_each(|(r, row)| {
         row.chars().enumerate().for_each(|(c, ch)| {
@@ -61,13 +58,6 @@ pub fn solve_part_one(input: &str) -> usize {
         })
     });
 
-    //galaxies
-    //.iter()
-    // this is expensive since combinations will clone and create a
-    // new vector for every pair. We should create our own iterator
-    // that creates tuples with references
-    //.combinations(2)
-    //.map(|galaxy_pair| {
     TupleCombinationIter::new(&galaxies)
         .map(|(a, b)| {
             let additional_y: usize = if a.y > b.y {
@@ -86,8 +76,37 @@ pub fn solve_part_one(input: &str) -> usize {
         .sum()
 }
 
-pub fn solve_part_two(input: &str) -> u32 {
-    todo!();
+pub fn solve_part_two(input: &str, expansion_val: usize) -> usize {
+    let mut cols = vec![expansion_val - 1; 140];
+    let mut rows = vec![expansion_val - 1; 140];
+    let mut galaxies = Vec::with_capacity(500);
+
+    input.lines().enumerate().for_each(|(r, row)| {
+        row.chars().enumerate().for_each(|(c, ch)| {
+            if ch == '#' {
+                cols[c] = 0;
+                rows[r] = 0;
+                galaxies.push(Point { x: c, y: r });
+            }
+        })
+    });
+
+    TupleCombinationIter::new(&galaxies)
+        .map(|(a, b)| {
+            let additional_y: usize = if a.y > b.y {
+                rows[b.y..=a.y].iter().sum()
+            } else {
+                rows[a.y..=b.y].iter().sum()
+            };
+
+            let additional_x: usize = if a.x > b.x {
+                cols[b.x..=a.x].iter().sum()
+            } else {
+                cols[a.x..=b.x].iter().sum()
+            };
+            a.dist(b) + additional_y + additional_x
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -111,6 +130,11 @@ mod tests {
 
     #[test]
     fn test_solve_part_two() {
-        assert_eq!(solve_part_two(TEST_EXAMPLE), 4);
+        assert_eq!(solve_part_two(TEST_EXAMPLE, 10), 1030);
+    }
+
+    #[test]
+    fn test_solve_part_two_second() {
+        assert_eq!(solve_part_two(TEST_EXAMPLE, 100), 8410);
     }
 }
