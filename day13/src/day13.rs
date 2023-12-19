@@ -13,7 +13,7 @@ impl Matrix {
     }
 
     fn height(&self) -> usize {
-        &self.data.len() / self.width
+        self.data.len() / self.width
     }
 
     fn width(&self) -> usize {
@@ -25,7 +25,7 @@ pub fn solve_part_one(input: &str) -> usize {
     let patterns = input.split("\n\n");
     patterns
         .par_bridge()
-        .map(|p| parse_pattern(p))
+        .map(parse_pattern)
         .map(|m| score_reflection(&m))
         .sum()
 }
@@ -54,8 +54,8 @@ fn score_reflection(m: &Matrix) -> usize {
             if l == 0 || r == m.width() - 1 {
                 return x;
             }
-            r = r + 1;
-            l = l - 1;
+            r += 1;
+            l -= 1;
         }
     }
 
@@ -72,15 +72,65 @@ fn score_reflection(m: &Matrix) -> usize {
             if d == 0 || u == m.height() - 1 {
                 return y * 100;
             }
-            u = u + 1;
-            d = d - 1;
+            u += 1;
+            d -= 1;
         }
     }
 
     panic!("every pattern should have a reflection")
 }
 
-pub fn solve_part_two(input: &str) -> u64 {
+fn score_reflection_smudged(m: &Matrix) -> usize {
+    // try vertical
+    'vertical: for x in 1..m.width() {
+        let mut r = x;
+        let mut l = x - 1;
+        let mut smudged = false;
+        loop {
+            for y in 0..m.height() {
+                if m.get_point(l, y) != m.get_point(r, y) {
+                    if !smudged {
+                        smudged = true;
+                    } else {
+                        continue 'vertical;
+                    }
+                }
+            }
+            if l == 0 || r == m.width() - 1 {
+                return x;
+            }
+            r += 1;
+            l -= 1;
+        }
+    }
+
+    // try horizontal
+    'horizontal: for y in 1..m.height() {
+        let mut u = y;
+        let mut d = y - 1;
+        let mut smudged = false;
+        loop {
+            for x in 0..m.width() {
+                if m.get_point(x, u) != m.get_point(x, d) {
+                    if !smudged {
+                        smudged = true;
+                    } else {
+                        continue 'horizontal;
+                    }
+                }
+            }
+            if d == 0 || u == m.height() - 1 {
+                return y * 100;
+            }
+            u += 1;
+            d -= 1;
+        }
+    }
+
+    panic!("every pattern should have a reflection")
+}
+
+pub fn solve_part_two(_input: &str) -> u64 {
     todo!()
 }
 
@@ -127,6 +177,12 @@ mod tests {
     fn test_horizontal_reflection() {
         let m = parse_pattern(TEST_EXAMPLE_HORIZONTAL);
         assert_eq!(score_reflection(&m), 400);
+    }
+
+    #[test]
+    fn test_horizontal_reflection_smudged() {
+        let m = parse_pattern(TEST_EXAMPLE_HORIZONTAL);
+        assert_eq!(score_reflection_smudged(&m), 300);
     }
 
     #[test]
